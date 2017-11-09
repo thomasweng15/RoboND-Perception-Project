@@ -55,7 +55,7 @@ def pcl_callback(pcl_msg):
     cloud = ros_to_pcl(pcl_msg)
     
     # TODO: Statistical Outlier Filtering
-    outlier_filter = cloud_filtered.make_statistical_outlier_filter()
+    outlier_filter = cloud.make_statistical_outlier_filter()
     outlier_filter.set_mean_k(50)
     x = 1.0
     outlier_filter.set_std_dev_mul_thresh(x)
@@ -67,12 +67,23 @@ def pcl_callback(pcl_msg):
     vox.set_leaf_size(LEAF_SIZE, LEAF_SIZE, LEAF_SIZE)
     cloud_filtered = vox.filter()
 
-    # PassThrough Filter
+    # PassThrough Filter Z
     passthrough = cloud_filtered.make_passthrough_filter()
 
     filter_axis = 'z'
     passthrough.set_filter_field_name(filter_axis)
-    axis_min = 0.75
+    axis_min = 0.5
+    axis_max = 1.1
+    passthrough.set_filter_limits(axis_min, axis_max)
+
+    cloud_filtered = passthrough.filter()
+
+    # PassThrough Filter X
+    passthrough = cloud_filtered.make_passthrough_filter()
+
+    filter_axis = 'x'
+    passthrough.set_filter_field_name(filter_axis)
+    axis_min = 0.35
     axis_max = 1.1
     passthrough.set_filter_limits(axis_min, axis_max)
 
@@ -102,8 +113,8 @@ def pcl_callback(pcl_msg):
     # as well as minimum and maximum cluster size (in points)
     # NOTE: These are poor choices of clustering parameters
     # Your task is to experiment and find values that work for segmenting objects.
-    ec.set_ClusterTolerance(0.03)
-    ec.set_MinClusterSize(300)
+    ec.set_ClusterTolerance(0.02)
+    ec.set_MinClusterSize(150)
     ec.set_MaxClusterSize(2500)
     # Search the k-d tree for clusters
     ec.set_SearchMethod(tree)
@@ -143,7 +154,7 @@ def pcl_callback(pcl_msg):
 
     detected_objects_labels = []
     detected_objects = []
-        
+
     for index, pts_list in enumerate(cluster_indices):
         # Grab the points for the cluster
         pcl_cluster = cloud_objects.extract(pts_list)
@@ -152,7 +163,7 @@ def pcl_callback(pcl_msg):
 	ros_cluster = pcl_to_ros(pcl_cluster)
         
         # Compute the associated feature vector
-        chists = compute_color_histograms(ros_cluster, using_hsv=False)
+        chists = compute_color_histograms(ros_cluster, using_hsv=True)
         normals = get_normals(ros_cluster)
         nhists = compute_normal_histograms(normals)
         feature = np.concatenate((chists, nhists))
@@ -181,7 +192,7 @@ def pcl_callback(pcl_msg):
     # Could add some logic to determine whether or not your object detections are robust
     # before calling pr2_mover()
     try:
-        pr2_mover(detected_objects_list)
+        pr2_mover(detected_objects)
     except rospy.ROSInterruptException:
         pass
 
@@ -213,9 +224,9 @@ def pr2_mover(object_list):
             pick_place_routine = rospy.ServiceProxy('pick_place_routine', PickPlace)
 
             # TODO: Insert your message variables to be sent as a service request
-            resp = pick_place_routine(TEST_SCENE_NUM, OBJECT_NAME, WHICH_ARM, PICK_POSE, PLACE_POSE)
+            # resp = pick_place_routine(TEST_SCENE_NUM, OBJECT_NAME, WHICH_ARM, PICK_POSE, PLACE_POSE)
 
-            print ("Response: ",resp.success)
+            #print ("Response: ",resp.success)
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
