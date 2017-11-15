@@ -111,8 +111,6 @@ def pcl_callback(pcl_msg):
     ec = white_cloud.make_EuclideanClusterExtraction()
     # Set tolerances for distance threshold 
     # as well as minimum and maximum cluster size (in points)
-    # NOTE: These are poor choices of clustering parameters
-    # Your task is to experiment and find values that work for segmenting objects.
     ec.set_ClusterTolerance(0.02)
     ec.set_MinClusterSize(150)
     ec.set_MaxClusterSize(2500)
@@ -199,23 +197,60 @@ def pcl_callback(pcl_msg):
 # function to load parameters and request PickPlace service
 def pr2_mover(object_list):
 
-    # TODO: Initialize variables
+    # Initialize variables
+    test_scene_num = Int32()
+    object_name = String()
+    arm_name = String()
+    pick_pose = Pose()
+    place_pose = Pose()
 
-    # TODO: Get/Read parameters
+    labels = []
+    centroids = [] # to be list of tuples (x, y, z)
 
-    # TODO: Parse parameters into individual variables
+    dict_list = []
+    yaml_filename = 'output_3.yaml'
+    test_scene_num.data = 3
+
+    # Get/Read parameters
+    object_list_param = rospy.get_param('/object_list')
+    dropbox_param = rospy.get_param('/dropbox')
+
+    # Parse parameters into individual variables
+    for obj in object_list:
+        labels.append(obj.label)
+        points_arr = ros_to_pcl(obj.cloud).to_array()
+        centroids.append(np.mean(points_arr, axis=0)[:3])
 
     # TODO: Rotate PR2 in place to capture side tables for the collision map
 
-    # TODO: Loop through the pick list
+    # Loop through the pick list
+    for i in range(0, len(object_list_param)):
 
-        # TODO: Get the PointCloud for a given object and obtain it's centroid
+        # Get the PointCloud for a given object and obtain it's centroid
+        object_name.data = object_list_param[i]['name']
+        object_group = object_list_param[i]['group']
+        for j in range(0,len(labels)):
+            if object_name.data == labels[j]:
+                pick_pose.position.x = np.asscalar(centroids[j][0])
+                pick_pose.position.y = np.asscalar(centroids[j][1])
+                pick_pose.position.z = np.asscalar(centroids[j][2])
 
-        # TODO: Create 'place_pose' for the object
+        # Create 'place_pose' for the object
+        for j in range(0, len(dropbox_param)):
+            if object_group == dropbox_param[j]['group']:
+                place_pose.position.x = dropbox_param[j]['position'][0]
+                place_pose.position.y = dropbox_param[j]['position'][1]
+                place_pose.position.z = dropbox_param[j]['position'][2]
 
-        # TODO: Assign the arm to be used for pick_place
+        # Assign the arm to be used for pick_place
+        if object_group =='green':
+            arm_name.data = 'right'
+        elif object_group == 'red':
+            arm_name.data = 'left'
 
-        # TODO: Create a list of dictionaries (made with make_yaml_dict()) for later output to yaml format
+        # Create a list of dictionaries (made with make_yaml_dict()) for later output to yaml format
+        yaml_dict = make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, place_pose)
+        dict_list.append(yaml_dict) 
 
         # Wait for 'pick_place_routine' service to come up
         rospy.wait_for_service('pick_place_routine')
@@ -223,16 +258,16 @@ def pr2_mover(object_list):
         try:
             pick_place_routine = rospy.ServiceProxy('pick_place_routine', PickPlace)
 
-            # TODO: Insert your message variables to be sent as a service request
-            # resp = pick_place_routine(TEST_SCENE_NUM, OBJECT_NAME, WHICH_ARM, PICK_POSE, PLACE_POSE)
+            # Insert your message variables to be sent as a service request
+            resp = pick_place_routine(test_scene_num, object_name, arm_name, pick_pose, place_pose)
 
-            #print ("Response: ",resp.success)
+            print ("Response: ",resp.success)
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
 
-    # TODO: Output your request parameters into output yaml file
-
+    # Output your request parameters into output yaml file
+    send_to_yaml(yaml_filename, dict_list)
 
 
 if __name__ == '__main__':
