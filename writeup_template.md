@@ -35,23 +35,58 @@
 You're reading it!
 
 ### Exercise 1, 2 and 3 pipeline implemented
+
+I completed steps 1, 2, and 3 by moving code from the perception exercises and didn't take a look until the Project Rubric until after I had these sections working. As a result, I don't have any intermediate pictures. 
+
 #### 1. Complete Exercise 1 steps. Pipeline for filtering and RANSAC plane fitting implemented.
 
 #### 2. Complete Exercise 2 steps: Pipeline including clustering for segmentation implemented.  
 
-#### 2. Complete Exercise 3 Steps.  Features extracted and SVM trained.  Object recognition implemented.
-Here is an example of how to include an image in your writeup.
+I experimented with clustering parameters and settled on the values in the code to constrain the segmentation algorithm. 
 
-![demo-1](https://user-images.githubusercontent.com/20687560/28748231-46b5b912-7467-11e7-8778-3095172b7b19.png)
+#### 2. Complete Exercise 3 Steps.  Features extracted and SVM trained.  Object recognition implemented.
+
+In the first two worlds, I captured 30 samples for each object, used HSV for the color histogram, and used a bucket size of 64 for both color and normal histograms. In the last one, I captured 40 samples and dropped the bucket size for color histograms from 64 to 32.
+
+Features in Training Set: 15
+Invalid Features in Training set: 0
+Scores: [ 0.66666667  1.          0.66666667  1.          1.        ]
+Accuracy: 0.87 (+/- 0.33)
+accuracy score: 0.866666666667
+
+Features in Training Set: 150 
+Invalid Features in Training set: 0
+Scores: [ 0.76666667  0.83333333  0.86666667  0.76666667  0.73333333]
+Accuracy: 0.79 (+/- 0.10)
+accuracy score: 0.793333333333
+
+Features in Training Set: 320
+Invalid Features in Training set: 0
+Scores: [ 0.8125    0.828125  0.90625   0.859375  0.921875]
+Accuracy: 0.87 (+/- 0.09)
+accuracy score: 0.865625
+
+Normalized confusion matrix for world 1:
+![mat1](./images/world1_figure2.png)
+
+NCM for world 2:
+![mat2](./images/world2_figure2.png)
+
+NCM for world 3:
+![mat3](./images/world3_figure2.png)
 
 ### Pick and Place Setup
 
 #### 1. For all three tabletop setups (`test*.world`), perform object recognition, then read in respective pick list (`pick_list_*.yaml`). Next construct the messages that would comprise a valid `PickPlace` request output them to `.yaml` format.
 
-And here's another image! 
-![demo-2](https://user-images.githubusercontent.com/20687560/28748286-9f65680e-7468-11e7-83dc-f1a32380b89c.png)
+World 1 object recognition:
+![w1or](./images/world1objrec.png)
 
-Spend some time at the end to discuss your code, what techniques you used, what worked and why, where the implementation might fail and how you might improve it if you were going to pursue this project further.  
+World 2 object recognition:
+![w2or](./images/world2objrec.png)
 
+World 3 object recognition:
+![w3or](./images/world3objrec.png)
 
+I would improve this project by making the robot look side to side and cover more table areas, such as in world 4. 
 
