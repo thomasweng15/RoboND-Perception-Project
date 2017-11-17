@@ -46,7 +46,7 @@ I experimented with clustering parameters and settled on the values in the code 
 
 #### 2. Complete Exercise 3 Steps.  Features extracted and SVM trained.  Object recognition implemented.
 
-In the first two worlds, I captured 30 samples for each object, used HSV for the color histogram, and used a bucket size of 64 for both color and normal histograms. In the last one, I captured 40 samples and dropped the bucket size for color histograms from 64 to 32.
+In the first two worlds, I captured 30 samples for each object, used HSV for the color histogram, and used a bucket size of 64 for both color and normal histograms. In the last one, I captured 40 samples and dropped the bucket size for color histograms from 64 to 32. See the python files in reference for the relevant files from the sensor_stick repository. 
 
 Features in Training Set: 15
 Invalid Features in Training set: 0
